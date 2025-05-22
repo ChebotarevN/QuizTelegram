@@ -1,7 +1,7 @@
 package app.commander.sender;
 
-import app.commander.SendMessage;
 import app.commander.state.StateSession;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.io.FileNotFoundException;
 

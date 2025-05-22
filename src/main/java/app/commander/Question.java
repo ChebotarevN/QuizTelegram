@@ -4,30 +4,21 @@ import java.util.List;
 
 public class Question {
     private String question;
-    private List<String> variant;
-    private int rightAnswer;
+    private List<String> variants;
+    private List<Integer> correctAnswers; // Multiple correct answers support
+    private List<Integer> incorrectAnswers;
 
-    public String getQuestion() {
-        return question;
-    }
+    // Getters and setters
+    public String getQuestion() { return question; }
+    public void setQuestion(String question) { this.question = question; }
+    public List<String> getVariants() { return variants; }
+    public void setVariants(List<String> variants) { this.variants = variants; }
+    public List<Integer> getCorrectAnswers() { return correctAnswers; }
+    public void setCorrectAnswers(List<Integer> correctAnswers) { this.correctAnswers = correctAnswers; }
+    public List<Integer> getIncorrectAnswers() { return incorrectAnswers; }
+    public void setIncorrectAnswers(List<Integer> incorrectAnswers) { this.incorrectAnswers = incorrectAnswers; }
 
-    public void setQuestion(String question) {
-        this.question = question;
-    }
-
-    public List<String> getVariant() {
-        return variant;
-    }
-
-    public void setVariant(List<String> variant) {
-        this.variant = variant;
-    }
-
-    public int getRightAnswer() {
-        return rightAnswer;
-    }
-
-    public void setRightAnswer(int rightAnswer) {
-        this.rightAnswer = rightAnswer;
+    public boolean isCorrect(int answer) {
+        return correctAnswers.contains(answer);
     }
 }

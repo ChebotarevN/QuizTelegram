@@ -1,14 +1,14 @@
 package app.commander.sender;
 
-import app.commander.*;
-import app.commander.state.Learner;
+import app.commander.Question;
 import app.commander.state.StateSession;
-
+import app.commander.state.Study;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import java.io.FileNotFoundException;
 
 public class StudySender extends Sender {
     public StudySender() {
-        stateSession = new Learner();
+        stateSession = new Study();
     }
 
     @Override
@@ -19,16 +19,26 @@ public class StudySender extends Sender {
     @Override
     public SendMessage createSendMessage() throws FileNotFoundException {
         SendMessage message = new SendMessage();
-        if (stateSession.getState() == StateSession.State.ACTION || stateSession.getState() == StateSession.State.INIT) {
-            Question qt = stateSession.action();
-            String text = qt.getQuestion() + "?";
-            for (int i = 0; i < qt.getVariant().size(); i++) {
-                text += "\n" + qt.getVariant().get(i);
-            }
-            message.setText(text);
+        StateSession.State state = stateSession.getState();
+
+        if (state == StateSession.State.INIT || state == StateSession.State.ACTION) {
+            Question question = stateSession.action();
+            message.setText(formatQuestion(question));
         } else {
-            message.setText("" + stateSession.end());
+            message.setText(stateSession.end());
+            // Автоматически переходим к следующему вопросу
+            stateSession.action();
+            message.setText(message.getText() + "\n\nНовый вопрос:\n" +
+                    formatQuestion(stateSession.action()));
         }
         return message;
+    }
+
+    private String formatQuestion(Question question) {
+        StringBuilder sb = new StringBuilder(question.getQuestion() + "\n");
+        for (int i = 0; i < question.getVariants().size(); i++) {
+            sb.append(i+1).append(") ").append(question.getVariants().get(i)).append("\n");
+        }
+        return sb.toString();
     }
 }

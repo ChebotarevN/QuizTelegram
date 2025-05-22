@@ -8,38 +8,60 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class QuestionList {
-    private List<Question> questionList;
+    private List<Question> questions;
+    private Random random = new Random();
 
     public QuestionList(File file) throws FileNotFoundException {
-        questionList = new ArrayList<>();
-        Question question = null;
-        List<String> variants = new ArrayList<>();
-        Scanner in = new Scanner(file);
-        while (in.hasNext()) {
-            String text = in.nextLine();
-            if (!text.startsWith(" ")) {
-                if (question == null) {
-                    question = new Question();
-                    question.setQuestion(text);
-                } else {
-                    question.setVariant(variants);
-                    questionList.add(question);
-                    question = new Question();
-                    question.setQuestion(text);
-                    variants = new ArrayList<>();
+        questions = new ArrayList<>();
+        Scanner scanner = new Scanner(file);
+
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine().trim();
+            if (line.isEmpty()) continue;
+
+            if (!line.startsWith(" ")) {
+                Question question = new Question();
+                question.setQuestion(line);
+                question.setCorrectAnswers(new ArrayList<>());
+
+                List<String> variants = new ArrayList<>();
+                int variantNumber = 1;
+                while (scanner.hasNextLine()) {
+                    String variantLine = scanner.nextLine().trim();
+                    if (variantLine.isEmpty()) break;
+
+                    // Удаляем звездочку (*) при сохранении варианта
+                    boolean isCorrect = variantLine.endsWith("*");
+                    String cleanVariant = isCorrect
+                            ? variantLine.substring(0, variantLine.length() - 1)
+                            : variantLine;
+
+                    variants.add(cleanVariant);
+                    if (isCorrect) {
+                        question.getCorrectAnswers().add(variantNumber);
+                    }
+                    variantNumber++;
                 }
-            } else {
-                variants.add(text);
+
+                question.setVariants(variants);
+                questions.add(question);
             }
         }
-        if (question != null) {
-            question.setVariant(variants);
-            questionList.add(question);
-        }
+        scanner.close();
     }
 
-    public Question getQuestion() {
-        Random random = new Random();
-        return questionList.get(random.nextInt(questionList.size()));
+    // Добавляем метод для получения всех вопросов
+    public List<Question> getAllQuestions() {
+        return new ArrayList<>(questions); // Возвращаем копию списка
+    }
+
+    // Старый метод getRandomQuestion (переименованный для ясности)
+    public Question getRandomQuestion() {
+        return questions.get(random.nextInt(questions.size()));
+    }
+
+    // Метод для общего количества вопросов
+    public int getTotalQuestions() {
+        return questions.size();
     }
 }

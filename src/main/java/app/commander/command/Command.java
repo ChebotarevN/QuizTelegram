@@ -1,7 +1,7 @@
 package app.commander.command;
 
-import app.commander.SendMessage;
 import app.commander.sender.Sender;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.util.Objects;
 

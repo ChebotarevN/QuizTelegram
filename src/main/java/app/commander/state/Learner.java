@@ -2,55 +2,77 @@ package app.commander.state;
 
 import app.commander.Question;
 import app.commander.QuestionList;
-
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Learner implements StateSession {
-    private int error, right;
-    private Question question;
-    private State state;
+    private Question currentQuestion;
+    private State state = State.INIT;
+    private QuestionList questionList;
+    private List<Question> askedQuestions = new ArrayList<>();
+    private int attempts = 1;
+    private boolean answerCorrect = false;
 
     public Learner() {
-        state = State.INIT;
-    }
-
-    public Question action() throws FileNotFoundException //формирует вопрос из списка вопросов
-    {
-        state = State.ACTION;
-        QuestionList questionList;
         try {
             questionList = new QuestionList(new File("src/main/resources/quest"));
-        } catch (Exception e) {
+        } catch (FileNotFoundException e) {
             state = State.ERROR;
-            return null;
         }
-        question = questionList.getQuestion();
+    }
+
+    @Override
+    public Question action() {
+        if (answerCorrect || state == State.INIT) {
+            currentQuestion = getNewQuestion();
+            attempts = 1;
+            answerCorrect = false;
+        }
+        state = State.ACTION;
+        return currentQuestion;
+    }
+
+    private Question getNewQuestion() {
+        Question question;
+        do {
+            question = questionList.getRandomQuestion();
+        } while (askedQuestions.contains(question) && askedQuestions.size() < questionList.getTotalQuestions());
+
+        askedQuestions.add(question);
         return question;
     }
 
-    public boolean check(String answer) //проверяет ответ answer на вопрос
-    {
-        state = State.CHECK;
-        int mess = 0;
+    @Override
+    public boolean check(String answer) {
+        attempts++;
         try {
-            mess = Integer.parseInt(answer);
-        } catch (Exception e) {
+            int selectedAnswer = Integer.parseInt(answer.trim());
+            answerCorrect = currentQuestion.isCorrect(selectedAnswer);
+            state = answerCorrect ? State.CHECK : State.ACTION;
+            return answerCorrect;
+        } catch (NumberFormatException e) {
             state = State.ERROR;
             return false;
         }
-        return mess == question.getRightAnswer();
     }
 
-    public String end() //выводит статистику по результатам теста
-    {
-        state = State.END;
-        return String.format("Вы правильно ответили на %d вопросов из %d. Процент правильных ответов составил %f%", right, right + error, right / error);
+    @Override
+    public String end() {
+        if (answerCorrect) {
+            return "Правильно! Следующий вопрос:";
+        } else {
+            return "Неправильно. Попробуйте еще раз:";
+        }
     }
 
     @Override
     public State getState() {
-        ;
         return state;
+    }
+
+    public int getAttempts() {
+        return attempts;
     }
 }

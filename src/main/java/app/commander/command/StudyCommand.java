@@ -1,8 +1,8 @@
 package app.commander.command;
 
-import app.commander.SendMessage;
 import app.commander.sender.Sender;
 import app.commander.sender.StudySender;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 public class StudyCommand extends Command {
     @Override

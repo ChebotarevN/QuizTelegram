@@ -2,55 +2,53 @@ package app.commander.state;
 
 import app.commander.Question;
 import app.commander.QuestionList;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 
 public class Study implements StateSession {
-    private int error, right;
-    private Question question;
-    private State state;
+    private Question currentQuestion;
+    private State state = State.INIT;
+    private QuestionList questionList;
 
     public Study() {
-        state = State.INIT;
-    }
-
-    public Question action() throws FileNotFoundException //формирует вопрос из списка вопросов
-    {
-        state = State.ACTION;
-        QuestionList questionList;
         try {
             questionList = new QuestionList(new File("src/main/resources/quest"));
-        } catch (Exception e) {
+        } catch (FileNotFoundException e) {
             state = State.ERROR;
-            return null;
         }
-        question = questionList.getQuestion();
-        return question;
     }
 
-    public boolean check(String answer) //проверяет ответ answer на вопрос
-    {
+    @Override
+    public Question action() {
+        currentQuestion = questionList.getRandomQuestion();
+        state = State.ACTION;
+        return currentQuestion;
+    }
+
+    @Override
+    public boolean check(String answer) {
         state = State.CHECK;
-        int mess = 0;
         try {
-            mess = Integer.parseInt(answer);
-        } catch (Exception e) {
+            int selectedAnswer = Integer.parseInt(answer.trim());
+            return currentQuestion.isCorrect(selectedAnswer);
+        } catch (NumberFormatException e) {
             state = State.ERROR;
             return false;
         }
-        return mess == question.getRightAnswer();
     }
 
-    public String end() //выводит статистику по результатам теста
-    {
+    @Override
+    public String end() {
         state = State.END;
-        return String.format("Вы правильно ответили на %d вопросов из %d. Процент правильных ответов составил %f%", right, right + error, right / error);
+        StringBuilder sb = new StringBuilder("Правильный ответ: ");
+        for (Integer correct : currentQuestion.getCorrectAnswers()) {
+            sb.append(correct).append(") ").append(currentQuestion.getVariants().get(correct-1)).append(" ");
+        }
+        return sb.toString();
     }
 
     @Override
     public State getState() {
-        ;
         return state;
     }
 }
